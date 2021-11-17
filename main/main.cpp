@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "pindefs.h"
+#include "speech-recognition.h"
 #include "ulp_mic.h"
 
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
@@ -97,7 +98,10 @@ extern "C" void app_main(void) {
         printf("%u\n", samp);
     }
 
+    setup();
+
     while (true) {
+        loop();
         vTaskDelay(1);
     }
 }
