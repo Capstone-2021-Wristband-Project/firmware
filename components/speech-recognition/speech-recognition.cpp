@@ -1,104 +1,67 @@
 #include "speech-recognition.h"
 
-#include <cstdio>
+#include <algorithm>
 
-#include "model.h"
+#include "driver/adc.h"
+#include "fft.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "soc/adc_channel.h"
+#include "tf-speech.h"
 
-
-#include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/system_setup.h"
-#include "tensorflow/lite/schema/schema_generated.h"
-
-// Globals, used for compatibility with Arduino-style sketches.
-namespace {
-tflite::ErrorReporter* error_reporter = nullptr;
-const tflite::Model* model = nullptr;
-tflite::MicroInterpreter* interpreter = nullptr;
-TfLiteTensor* input = nullptr;
-TfLiteTensor* output = nullptr;
-int inference_count = 0;
-
-constexpr int kTensorArenaSize = 64000;
-uint8_t tensor_arena[kTensorArenaSize];
-}  // namespace
-
-void setup() {
-    // Set up logging. Google style is to avoid globals or statics because of
-    // lifetime uncertainty, but since this has a trivial destructor it's okay.
-    // NOLINTNEXTLINE(runtime-global-variables)
-    static tflite::MicroErrorReporter micro_error_reporter;
-    error_reporter = &micro_error_reporter;
-
-    // Map the model into a usable data structure. This doesn't involve any
-    // copying or parsing, it's a very lightweight operation.
-    model = tflite::GetModel(get_model());
-    if (model->version() != TFLITE_SCHEMA_VERSION) {
-        TF_LITE_REPORT_ERROR(error_reporter,
-                             "Model provided is schema version %d not equal "
-                             "to supported version %d.",
-                             model->version(), TFLITE_SCHEMA_VERSION);
-        return;
+static std::array<int16_t, 16000> buf{};
+static volatile size_t i{0};
+void record_sample(void*) {
+    if (i < buf.size()) {
+        buf[i] = adc1_get_raw(ADC1_GPIO35_CHANNEL);
+        i++;
     }
-
-    // This pulls in all the operation implementations we need.
-    // NOLINTNEXTLINE(runtime-global-variables)
-    static tflite::AllOpsResolver resolver;
-
-    // Build an interpreter to run the model with.
-    static tflite::MicroInterpreter static_interpreter(model, resolver, tensor_arena,
-                                                       kTensorArenaSize, error_reporter);
-    interpreter = &static_interpreter;
-
-    // Allocate memory from the tensor_arena for the model's tensors.
-    TfLiteStatus allocate_status = interpreter->AllocateTensors();
-    if (allocate_status != kTfLiteOk) {
-        TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
-        return;
-    }
-
-    // Obtain pointers to the model's input and output tensors.
-    input = interpreter->input(0);
-    output = interpreter->output(0);
-
-    TfLiteType type = input->type;
-    int dim_count = input->dims->size;
-    int dim_0 = input->dims->data[0];
-    int dim_1 = input->dims->data[1];
-    int dim_2 = input->dims->data[2];
-    int dim_3 = input->dims->data[3];
-
-    printf("type: %s, dimensions: %d {%d, %d, %d, %d} \n", TfLiteTypeGetName(type), dim_count,
-           dim_0, dim_1, dim_2, dim_3);
-
-    // Keep track of how many inferences we have performed.
-    inference_count = 0;
 }
 
-void loop() {
-    // Calculate an x value to feed into the model. We compare the current
-    // inference_count to the number of inferences per cycle to determine
-    // our position within the range of possible x values the model was
-    // trained on, and use this to calculate a value.
-    float x = 1.0;
+// void scale_buffer(std::array<int16_t, 16000>& buf) {
+//     auto max = *std::max_element(buf.begin(), buf.end());
+//     auto min = *std::min_element(buf.begin(), buf.end());
 
-    // Quantize the input from floating-point to integer
-    int8_t x_quantized = x / input->params.scale + input->params.zero_point;
-    // Place the quantized input in the model's input tensor
-    input->data.int8[0] = x_quantized;
+//     for (auto& samp : buf) {
+//         uint32_t scratch = samp;
+//         scratch -= min;
+//         scratch *= 256;
+//         scratch /= (max - min);
+//         samp = static_cast<uint16_t>(scratch);
+//     }
+// }
 
-    // Run inference, and report any error
-    TfLiteStatus invoke_status = interpreter->Invoke();
-    if (invoke_status != kTfLiteOk) {
-        TF_LITE_REPORT_ERROR(error_reporter, "Invoke failed on x: %f\n", static_cast<double>(x));
-        return;
+void init_mic() {
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(ADC1_GPIO35_CHANNEL, ADC_ATTEN_DB_6);
+    // static_assert(ADC1_CHANNEL_6_GPIO_NUM == PIN_INTERNAL_MICROPHONE);
+
+    const esp_timer_create_args_t periodic_timer_args = {
+        .callback = &record_sample,
+        /* name is optional, but may help identify the timer when debugging */
+        .name = "mic"};
+    esp_timer_handle_t periodic_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
+
+    puts("Recording");
+    ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, 1000000 / 8000));
+
+    // vTaskDelay(pdMS_TO_TICKS(6000));
+    // scale_buffer(buf);
+    // for (auto samp : buf) {
+    //     printf("%u\n", samp);
+    // }
+}
+
+void init_speech_recognition() {
+    init_mic();
+    init_tf_speech();
+}
+
+void run_speech_recognition() {
+    if (i >= 16000) {
+        puts("Done recording");
+        auto spectogram = kiss_transform(buf);
+        run_tf_speech(std::move(spectogram));
     }
-
-    // Obtain the quantized output from model's output tensor
-    int8_t y_quantized = output->data.int8[0];
-    // Dequantize the output from integer to floating-point
-    float y = (y_quantized - output->params.zero_point) * output->params.scale;
-
-    puts("done");
 }
