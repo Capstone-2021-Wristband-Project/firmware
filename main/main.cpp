@@ -80,6 +80,8 @@ extern "C" void app_main(void) {
     
     setTimeFromTimeStrings(dateStr, timeStr);
 
+    long count = 0;
+
     while (true) {
         //run_speech_recognition();
 
@@ -95,6 +97,29 @@ extern "C" void app_main(void) {
         localtime_r(&now, &timeinfo);
         strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
         ESP_LOGI("time", "The current date/time is: %s", strftime_buf);
+
+        if(count == 30) {
+            display.addEvent("up");
+        }
+
+        if(count == 40) {
+            display.addEvent("down");
+        }
+
+        if(count == 50) {
+            display.addEvent("left");
+        }
+
+        if(count == 60) {
+            display.addEvent("right");
+        }
+
+        if(count == 80) {
+            display.addEvent("stop");
+        }
+
+        count ++;
+
         vTaskDelay(100);
     }
 }
