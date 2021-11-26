@@ -1,6 +1,6 @@
-idf_component_register(SRCS "main.cpp"
+idf_component_register(SRCS "main.cpp" "time_utils.cpp"
                     INCLUDE_DIRS ""
-                    REQUIRES ulp speech-recognition)
+                    REQUIRES ulp speech-recognition arduino display)
 
 set(ulp_app_name ulp_mic)
 

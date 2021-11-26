@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <array>
 #include <stdio.h>
+#include <string>
 
 // ESP-IDF Includes
 #include "driver/adc.h"
@@ -18,10 +19,24 @@
 #include "speech-recognition.h"
 #include "ulp_mic.h"
 
+// Arduino because it's easy
+#include "Arduino.h"
+
+// display
+#include "display.h"
+#include "time_utils.h"
+
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
 extern const uint8_t bin_end[] asm("_binary_ulp_mic_bin_end");
 
 uint32_t* mic_buffer = &ulp_mic_buffer;
+
+const std::string dateStr = __DATE__;
+const std::string timeStr = __TIME__;
+
+Display display;
+
+
 
 void start_ulp_program() {
     // ESP_ERROR_CHECK(
@@ -33,6 +48,8 @@ void start_ulp_program() {
 }
 
 extern "C" void app_main(void) {
+    initArduino();
+
     gpio_config_t gpio_config_data{};
     gpio_config_data.pin_bit_mask = 1ULL << PIN_TESTPOINT_1;
     gpio_config_data.mode = GPIO_MODE_OUTPUT;
@@ -56,13 +73,23 @@ extern "C" void app_main(void) {
     //     }
     //     fputc('\n', stdout);
     // }
+    display.enableDisplay();
 
+    //init_speech_recognition();
     
-
-    init_speech_recognition();
+    setTimeFromTimeStrings(dateStr, timeStr);
 
     while (true) {
-        run_speech_recognition();
-        vTaskDelay(1);
+        //run_speech_recognition();
+        display.updateDisplay();
+        time_t now;
+        char strftime_buf[64];
+        struct tm timeinfo;
+
+        time(&now);
+        localtime_r(&now, &timeinfo);
+        strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+        ESP_LOGI("time", "The current date/time is: %s", strftime_buf);
+        vTaskDelay(100);
     }
 }
