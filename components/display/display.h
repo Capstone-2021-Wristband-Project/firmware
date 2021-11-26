@@ -33,4 +33,5 @@ class Display{
         void enableDisplay();
         void setBatteryLevel(uint8_t level);
         void updateDisplay();
+        void disableDisplay();
 };

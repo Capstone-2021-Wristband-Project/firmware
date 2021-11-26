@@ -73,6 +73,7 @@ extern "C" void app_main(void) {
     //     }
     //     fputc('\n', stdout);
     // }
+
     display.enableDisplay();
 
     //init_speech_recognition();
@@ -81,6 +82,10 @@ extern "C" void app_main(void) {
 
     while (true) {
         //run_speech_recognition();
+
+        // TODO: implement this properly.
+        display.setBatteryLevel(map(analogRead(PIN_BATTERY_SENSE), 0 ,4096, 0, 15));
+        
         display.updateDisplay();
         time_t now;
         char strftime_buf[64];

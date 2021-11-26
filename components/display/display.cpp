@@ -24,8 +24,7 @@ void Display::updateDisplay(){
 
     // draw battery level
     // TODO: actually implement getting the battery level.
-    int batteryLevel = 16 - (millis() / 2000 % 16);
-    this->u8g2.drawBox(106, 3, batteryLevel, 10);
+    this->u8g2.drawBox(106, 3, this->batteryLevel, 10);
 
     time_t now;
     struct tm timeInfo;
@@ -45,4 +44,12 @@ void Display::updateDisplay(){
 
     // write results to display
     this->u8g2.sendBuffer();
+}
+
+void Display::setBatteryLevel(uint8_t level){
+    this->batteryLevel = level;
+}
+
+void Display::disableDisplay() {
+    digitalWrite(DISPLAY_POWER_SWITCH_PIN, DISPLAY_POWER_OFF);
 }
