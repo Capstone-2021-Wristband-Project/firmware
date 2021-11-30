@@ -32,7 +32,7 @@
 #define PROFILE_NUM                 1
 #define PROFILE_APP_IDX             0
 #define ESP_APP_ID                  0x55
-#define SAMPLE_DEVICE_NAME          "BLE_COMP_TEST"
+#define SAMPLE_DEVICE_NAME          "Vibrating Wristband"
 #define SVC_INST_ID                 0
 
 /* The max length of characteristic value. When the gatt client write or prepare write,
@@ -70,7 +70,7 @@ static uint8_t raw_adv_data[] = {
         /* service uuid */
         0x03, 0x03, 0xFF, 0x00,
         /* device name */
-        0x0E, 0x09, 'B', 'L', 'E', '_', 'C', 'O','M', 'P', '_', 'T','E', 'S', 'T'
+        0x0E, 0x09, 'V', 'I', 'B', 'R', 'A', 'T','I', 'N', 'G', '_','W', 'R', 'I', 'S', 'T', 'B', 'A', 'N', 'D'
 };
 static uint8_t raw_scan_rsp_data[] = {
         /* flags */
@@ -160,7 +160,7 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
 
 /* Service */
 static const uint16_t GATTS_SERVICE_UUID_TEST      = 0x00FF;
-static const uint16_t CHAR_1_SHORT_WR              = 0xFF01;
+static const uint16_t MOTOR_SETTING                = 0xFF01;
 static const uint16_t CHAR_2_LONG_WR               = 0xFF02;
 static const uint16_t CHAR_3_SHORT_NOTIFY          = 0xFF03;
 
@@ -170,7 +170,7 @@ static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_C
 static const uint16_t character_user_description   = ESP_GATT_UUID_CHAR_DESCRIPTION;
 static const uint8_t char_prop_notify              = ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const uint8_t char_prop_read_write          = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
-static const uint8_t char1_name[]  = "Char_1_Short_WR";
+static const uint8_t char1_name[]  = "Motor Setting";
 static const uint8_t char2_name[]  = "Char_2_Long_WR";
 static const uint8_t char3_name[]  = "Char_3_Short_Notify";
 static const uint8_t char_ccc[2]   = {0x00, 0x00};
@@ -192,7 +192,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
 
     /* Characteristic Value */
     [IDX_CHAR_VAL_A] =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&CHAR_1_SHORT_WR, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE | ESP_GATT_PERM_READ_ENC_MITM,
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&MOTOR_SETTING, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE | ESP_GATT_PERM_READ_ENC_MITM,
       SHORT_CHAR_VAL_LEN, sizeof(char_value), (uint8_t *)char_value}},
 
     /* Characteristic User Descriptor */
@@ -200,37 +200,37 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_user_description, ESP_GATT_PERM_READ,
       sizeof(char1_name), sizeof(char1_name), (uint8_t *)char1_name}},
 
-    /* Characteristic Declaration */
+    /* Characteristic Declaration 
     [IDX_CHAR_B]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
 
-    /* Characteristic Value */
+     Characteristic Value 
     [IDX_CHAR_VAL_B]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&CHAR_2_LONG_WR, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       LONG_CHAR_VAL_LEN, sizeof(char_value), (uint8_t *)char_value}},
 
-       /* Characteristic User Descriptor */
+     Characteristic User Descriptor 
     [IDX_CHAR_CFG_B]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_user_description, ESP_GATT_PERM_READ,
       sizeof(char2_name), sizeof(char2_name), (uint8_t *)char2_name}},
 
-   /* Characteristic Declaration */
+     Characteristic Declaration 
     [IDX_CHAR_C]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_notify}},
 
-    /* Characteristic Value */
+      Characteristic Value 
     [IDX_CHAR_VAL_C]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&CHAR_3_SHORT_NOTIFY, 0,
       LONG_CHAR_VAL_LEN, sizeof(char_value), (uint8_t *)char_value}},
 
-    /* Characteristic User Descriptor */
+      Characteristic User Descriptor 
     [IDX_CHAR_CFG_C]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_user_description, ESP_GATT_PERM_READ,
       sizeof(char3_name), sizeof(char3_name), (uint8_t *)char3_name}},
 
-    /* Characteristic Client Configuration Descriptor */
+      Characteristic Client Configuration Descriptor */
     [IDX_CHAR_CFG_C_2]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(char_ccc), (uint8_t *)char_ccc}},
@@ -486,13 +486,12 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
        	    break;
         case ESP_GATTS_READ_EVT:
             //ESP_LOGE(EXAMPLE_TAG, "ESP_GATTS_READ_EVT, handle=0x%d, offset=%d", param->read.handle, param->read.offset);
-            if(gatt_db_handle_table[IDX_CHAR_VAL_A] == param->read.handle) {
-            	//changed to also print param->read.offset to see if that is the right char
-                ESP_LOGE(EXAMPLE_TAG, "(2) ***** read char1 ***** :%d\n", param->read.handle);
+            /*if(gatt_db_handle_table[IDX_CHAR_VAL_A] == param->read.handle) {
+                ESP_LOGE(EXAMPLE_TAG, "(2) ***** read char1 *****\n");
             }
             if(gatt_db_handle_table[IDX_CHAR_VAL_B] == param->read.handle) {
                 ESP_LOGE(EXAMPLE_TAG, "(5) ***** read char2 ***** \n");
-            }
+            }*/
        	    break;
         case ESP_GATTS_WRITE_EVT:
             if (!param->write.is_prep){
@@ -521,9 +520,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     }
 
                 }
-                if(gatt_db_handle_table[IDX_CHAR_VAL_A] == param->write.handle && param->write.len == 2) {
+                if(gatt_db_handle_table[IDX_CHAR_VAL_A] == param->write.handle/* && param->write.len == 2*/) {
                     uint8_t write_data[2] = {0x88, 0x99};
-                    int write_data2[10] = {0,1,2,3,4,5,6,7,8,9};
+                    int write_data2[10] = {1,2,3,4,5,6,7,8,9, 10};
                     int data = (int)*(param->write.value);
                     int contains = 0;
                     for (int i = 0; i < 10; i++) {
@@ -531,6 +530,11 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     		contains = 1;
 						}
 					}
+					if (contains) {
+						ESP_LOGI(EXAMPLE_TAG, "Writing %" PRIu8 " to vibration motor.\n", *(param->write.value));
+						//adjustMotor(data);
+					}
+					
                     if(memcmp(write_data, param->write.value, param->write.len) == 0) {
                     	//prints param->write.value to see if it is 88 99. if it is, can use param->write.value to
                     	//pass into function to change voltage of vibration motor.
@@ -593,6 +597,8 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 //Prints given message to log.
 void notifier(char *message) {
 	ESP_LOGI(EXAMPLE_TAG, "%s\n", message);
+	//esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, gatt_db_handle_table[IDX_CHAR_VAL_C],
+      //                  sizeof(notify_data), notify_data, false);
 }
 
 static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)

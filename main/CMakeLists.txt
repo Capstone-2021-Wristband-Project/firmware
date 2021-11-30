@@ -1,6 +1,6 @@
 idf_component_register(SRCS "main.cpp"
                     INCLUDE_DIRS ""
-                    REQUIRES ulp speech-recognition)
+                    REQUIRES ulp speech-recognition ble)
 
 set(ulp_app_name ulp_mic)
 

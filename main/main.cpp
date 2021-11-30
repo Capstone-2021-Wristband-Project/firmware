@@ -19,9 +19,13 @@
 #include "ulp_mic.h"
 
 // BLE
+#ifdef __cplusplus
 extern "C" {
-#include "ble.h"
+#endif
+	#include "ble.h"
+#ifdef __cplusplus
 }
+#endif
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
 extern const uint8_t bin_end[] asm("_binary_ulp_mic_bin_end");
 
@@ -65,8 +69,11 @@ extern "C" void app_main(void) {
 
     //init_speech_recognition();
 	ble_main();
-    //while (true) {
+	char msg[] = "nothing here";
+    while (true) {
+    	notifier(msg);
+    	vTaskDelay(100);
     //    run_speech_recognition();
     //    vTaskDelay(1);
-    //}
+    }
 }
