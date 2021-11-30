@@ -26,6 +26,9 @@
 #include "display.h"
 #include "time_utils.h"
 
+#include "vibration-motor.h"
+
+
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
 extern const uint8_t bin_end[] asm("_binary_ulp_mic_bin_end");
 
@@ -35,8 +38,7 @@ const std::string dateStr = __DATE__;
 const std::string timeStr = __TIME__;
 
 Display display;
-
-
+VibrationMotor motor;
 
 void start_ulp_program() {
     // ESP_ERROR_CHECK(
@@ -82,6 +84,9 @@ extern "C" void app_main(void) {
 
     long count = 0;
 
+    motor.init();
+    motor.enable();
+
     while (true) {
         //run_speech_recognition();
 
@@ -100,6 +105,7 @@ extern "C" void app_main(void) {
 
         if(count == 30) {
             display.addEvent("up");
+            motor.stop();
         }
 
         if(count == 40) {

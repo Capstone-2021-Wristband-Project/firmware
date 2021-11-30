@@ -66,7 +66,7 @@ void Display::updateDisplay(){
             if (secondsAgo < 60) {
                 // the ns ago case
                 snprintf(timeBuffer, sizeof(timeBuffer), "%lds ago", secondsAgo);
-            } else if (secondsAgo < 360) {
+            } else if (secondsAgo < 660) {
                 // the nm ago case
                 snprintf(timeBuffer, sizeof(timeBuffer), "%ldm ago", secondsAgo/60);
             } else {
