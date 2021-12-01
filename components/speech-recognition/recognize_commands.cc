@@ -51,12 +51,12 @@ TfLiteStatus RecognizeCommands::ProcessLatestResults(const TfLiteTensor* latest_
     }
     printf("\n");
 
-    if (latest_results->data.int8[2] > 128 + latest_results->data.int8[1]) {
-        puts("YES");
+    if (latest_results->data.int8[2] > 64 + latest_results->data.int8[1]) {
+        printf("YES %d", latest_results->data.int8[2] - latest_results->data.int8[1]);
     }
 
-    if (latest_results->data.int8[3] > 128 + latest_results->data.int8[1]) {
-        puts("NO");
+    if (latest_results->data.int8[3] > 64 + latest_results->data.int8[1]) {
+        printf("NO  %d", latest_results->data.int8[3] - latest_results->data.int8[1]);        
     }
 
     if (latest_results->type != kTfLiteInt8) {

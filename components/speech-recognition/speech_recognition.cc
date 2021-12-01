@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "main_functions.h"
+#include "speech_recognition.h"
 
 #include "audio_provider.h"
 #include "command_responder.h"
@@ -26,6 +26,9 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
@@ -47,7 +50,7 @@ int8_t* model_input_buffer = nullptr;
 }  // namespace
 
 // The name of this function is important for Arduino compatibility.
-void setup() {
+void speech_recognition_init() {
     // Set up logging. Google style is to avoid globals or statics because of
     // lifetime uncertainty, but since this has a trivial destructor it's okay.
     // NOLINTNEXTLINE(runtime-global-variables)
@@ -122,7 +125,7 @@ void setup() {
 }
 
 // The name of this function is important for Arduino compatibility.
-void loop() {
+void speech_recognition_run() {
     // Fetch the spectrogram for the current time.
     const int32_t current_time = LatestAudioTimestamp();
     int how_many_new_slices = 0;
@@ -178,4 +181,20 @@ void loop() {
     // just prints to the error console, but you should replace this with your
     // own function for a real application.
     RespondToCommand(error_reporter, current_time, found_command, score, is_new_command);
+}
+
+
+
+void speech_recognition_task(void*) {
+    while (true) {
+        speech_recognition_run();
+        vTaskDelay(pdMS_TO_TICKS(0));
+    }
+}
+
+void SpeechRecognition::init() {
+    static TaskHandle_t taskHandle{};
+    speech_recognition_init();
+
+    xTaskCreatePinnedToCore(speech_recognition_task, "SpeechRecognition", 32000, nullptr, tskIDLE_PRIORITY + 2, &taskHandle, 0);
 }

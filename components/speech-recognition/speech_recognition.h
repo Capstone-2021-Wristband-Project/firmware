@@ -20,14 +20,9 @@ limitations under the License.
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// Initializes all data needed for the example.
-void speech_recognition_init();
-
-// Runs one iteration of data gathering and inference. This should be called
-// repeatedly from the application code.
-void speech_recognition_run();
-
+namespace SpeechRecognition {
+void init();
+}
 #ifdef __cplusplus
 }
 #endif

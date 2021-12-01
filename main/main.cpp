@@ -1,8 +1,7 @@
 // stdlib Includes
-#include <stdio.h>
-
 #include <algorithm>
 #include <array>
+#include <cstdio>
 #include <string>
 
 // ESP-IDF Includes
@@ -16,16 +15,15 @@
 #include "freertos/task.h"
 
 // Project Includes
+#include "display.h"
 #include "pindefs.h"
+#include "time_utils.h"
 #include "ulp_mic.h"
+#include "vibration-motor.h"
+#include "speech_recognition.h"
 
 // Arduino because it's easy
 #include "Arduino.h"
-
-// display
-#include "display.h"
-#include "time_utils.h"
-#include "vibration-motor.h"
 
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
 extern const uint8_t bin_end[] asm("_binary_ulp_mic_bin_end");
@@ -74,9 +72,8 @@ extern "C" void app_main(void) {
     //     fputc('\n', stdout);
     // }
 
-    display.enableDisplay();
-
-    // init_speech_recognition();
+    // display.enableDisplay();
+    SpeechRecognition::init();
 
     setTimeFromTimeStrings(dateStr, timeStr);
 
