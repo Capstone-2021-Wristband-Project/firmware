@@ -72,19 +72,26 @@ extern "C" void app_main(void) {
     //     fputc('\n', stdout);
     // }
 
+    motor.init();
     display.enableDisplay();
-    SpeechRecognition::init(display.eventQueue, display);
+    SpeechRecognition::init(display.eventQueue, display, motor);
 
     setTimeFromTimeStrings(dateStr, timeStr);
 
     long count = 0;
 
-    motor.init();
-    motor.enable();
+    // motor.enable();
 
-    display.setBatteryLevel(13);
+    gpio_set_direction(PIN_SENSE_ENABLE, GPIO_MODE_OUTPUT);
+    gpio_set_level(PIN_SENSE_ENABLE, 1);
+
+    adc2_config_channel_atten(ADC2_GPIO25_CHANNEL, ADC_ATTEN_DB_11);
 
     while (true) {
+        int battery_level = 0; 
+        adc2_get_raw(ADC2_GPIO25_CHANNEL, ADC_WIDTH_BIT_12, &battery_level);
+        display.setBatteryLevel(battery_level >> 8);
+
         // Display and Speech tasks have all the logic
         vTaskDelay(100);
     }

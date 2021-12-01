@@ -50,6 +50,8 @@ int8_t* model_input_buffer = nullptr;
 
 // Event queue used to show items on the display
 static QueueHandle_t displayEventQueue{};
+static Display* display{nullptr};
+static VibrationMotor* motor{nullptr};
 
 // The name of this function is important for Arduino compatibility.
 void speech_recognition_init() {
@@ -126,8 +128,7 @@ void speech_recognition_init() {
     previous_time = 0;
 }
 
-// The name of this function is important for Arduino compatibility.
-void speech_recognition_run(Display* display) {
+void speech_recognition_run() {
     // Fetch the spectrogram for the current time.
     const int32_t current_time = LatestAudioTimestamp();
     int how_many_new_slices = 0;
@@ -185,16 +186,24 @@ void speech_recognition_run(Display* display) {
             // yes
             puts("yes");
             display->addEvent(eventName::Yes);
+
+            motor->enable();
+            // vTaskDelay(pdMS_TO_TICKS(200));
             break;
         }
         case 2: {
             // no
             puts("no");
             display->addEvent(eventName::No);
+
+            motor->enable();
+            // vTaskDelay(pdMS_TO_TICKS(200));
             break;
         }
         default: {
             // No command found
+            motor->stop();
+
             break;
         }
     }
@@ -202,18 +211,21 @@ void speech_recognition_run(Display* display) {
     // Add it to the queue
 }
 
-void speech_recognition_task(void* display) {
+void speech_recognition_task(void*) {
     while (true) {
-        speech_recognition_run(reinterpret_cast<Display*>(display));
+        speech_recognition_run();
         vTaskDelay(pdMS_TO_TICKS(0));
     }
 }
 
-void SpeechRecognition::init(QueueHandle_t eventQueue, Display& display) {
+void SpeechRecognition::init(QueueHandle_t eventQueue, Display& mainDisplay,
+                             VibrationMotor& mainMotor) {
     static TaskHandle_t taskHandle{};
     displayEventQueue = eventQueue;
+    display = &mainDisplay;
+    motor = &mainMotor;
     speech_recognition_init();
 
-    xTaskCreatePinnedToCore(speech_recognition_task, "SpeechRecognition", 32000, &display,
+    xTaskCreatePinnedToCore(speech_recognition_task, "SpeechRecognition", 32000, nullptr,
                             tskIDLE_PRIORITY + 2, &taskHandle, 0);
 }

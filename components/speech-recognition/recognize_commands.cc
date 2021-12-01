@@ -60,6 +60,8 @@ TfLiteStatus RecognizeCommands::ProcessLatestResults(const TfLiteTensor* latest_
     auto yes = weights[2];
     auto no = weights[3];
 
+
+
     if (yes > no -32 && yes > unknown + 32) {
         *found_command = 1;
     }
@@ -67,11 +69,13 @@ TfLiteStatus RecognizeCommands::ProcessLatestResults(const TfLiteTensor* latest_
         *found_command = 2;
     }
 
+    printf("Yes: (%4d, %4d) \tNo: (%4d, %4d)\n", yes - unknown, yes-no, no-unknown, no-yes);
 
-    for (int i = 0; i < kCategoryCount; i++) {
-        printf("%s: %d  //  ", kCategoryLabels[i], latest_results->data.int8[i]);
-    }
-    printf("\n");
+
+    // for (int i = 0; i < kCategoryCount; i++) {
+    //     printf("%s: %d  //  ", kCategoryLabels[i], latest_results->data.int8[i]);
+    // }
+    // printf("\n");
 
     // const auto max = std::max_element(weights.cbegin(), weights.cend());
     // const auto max_i = std::distance(weights.cbegin(), max);

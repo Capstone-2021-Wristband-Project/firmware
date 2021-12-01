@@ -20,13 +20,14 @@ limitations under the License.
 #include "freertos/queue.h"
 
 #include "display.h"
+#include "vibration-motor.h"
 
 // Expose a C friendly interface for main functions.
 #ifdef __cplusplus
 extern "C" {
 #endif
 namespace SpeechRecognition {
-void init(QueueHandle_t eventQueue, Display& diplay);
+void init(QueueHandle_t eventQueue, Display& diplay, VibrationMotor& motor);
 }
 #ifdef __cplusplus
 }
