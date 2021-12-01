@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Arduino.h"
+// #include "Arduino.h"
 
 const int vibrationMotorPin = 33;
 const int vibrationMotorPWMChannel = 0;

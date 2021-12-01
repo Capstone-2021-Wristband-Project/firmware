@@ -5,16 +5,19 @@
 #include <string>
 #include <type_traits>
 
-#include "Arduino.h"
-#include "U8g2lib.h"
-#include "Wire.h"
-#include "freertos/FreeRTOS.h"
 
-const uint8_t DISPLAY_I2C_SCL = 27;
-const uint8_t DISPLAY_I2C_SDA = 32;
-const uint8_t DISPLAY_POWER_SWITCH_PIN = 26;
-const uint8_t DISPLAY_POWER_ON = LOW;
-const uint8_t DISPLAY_POWER_OFF = HIGH;
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "driver/gpio.h"
+
+#include "u8g2.h"
+
+
+const gpio_num_t DISPLAY_I2C_SCL = GPIO_NUM_27;
+const gpio_num_t DISPLAY_I2C_SDA = GPIO_NUM_32;
+const gpio_num_t DISPLAY_POWER_SWITCH_PIN = GPIO_NUM_26;
+const uint8_t DISPLAY_POWER_ON = 0;
+const uint8_t DISPLAY_POWER_OFF = 1;
 
 const unsigned char batteryIcon[] = {
     0x00, 0x00, 0x00, 0xfe, 0xff, 0x1f, 0x02, 0x00, 0x10, 0x02, 0x00, 0x10, 0x02, 0x00, 0x70, 0x02,
@@ -40,8 +43,12 @@ class Display {
    protected:
     // U8G2_SSD1327_EA_W128128_F_HW_I2C u8g2 = U8G2_SSD1327_EA_W128128_F_HW_I2C(U8G2_R0, /* reset=*/
     // U8X8_PIN_NONE, /* scl=*/DISPLAY_I2C_SCL, /* sda=*/DISPLAY_I2C_SDA);
-    U8G2_SSD1327_WS_128X128_F_HW_I2C u8g2 = U8G2_SSD1327_WS_128X128_F_HW_I2C(
-        U8G2_R0, /* reset=*/U8X8_PIN_NONE, /* scl=*/DISPLAY_I2C_SCL, /* sda=*/DISPLAY_I2C_SDA);
+
+    
+
+    // U8G2_SSD1327_WS_128X128_F_HW_I2C u8g2 = U8G2_SSD1327_WS_128X128_F_HW_I2C(
+    //     U8G2_R0, /* reset=*/U8X8_PIN_NONE, /* scl=*/DISPLAY_I2C_SCL, /* sda=*/DISPLAY_I2C_SDA);
+    u8g2_t u8g2;
     uint8_t batteryLevel = 0;
     char timeBuffer[64];
     eventRecord events[eventBufferSize];

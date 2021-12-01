@@ -23,7 +23,7 @@
 #include "speech_recognition.h"
 
 // Arduino because it's easy
-#include "Arduino.h"
+// #include "Arduino.h"
 
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
 extern const uint8_t bin_end[] asm("_binary_ulp_mic_bin_end");
@@ -46,7 +46,7 @@ void start_ulp_program() {
 }
 
 extern "C" void app_main(void) {
-    initArduino();
+    // initArduino();
 
     gpio_config_t gpio_config_data{};
     gpio_config_data.pin_bit_mask = 1ULL << PIN_TESTPOINT_1;
@@ -72,7 +72,7 @@ extern "C" void app_main(void) {
     //     fputc('\n', stdout);
     // }
 
-    // display.enableDisplay();
+    display.enableDisplay();
     SpeechRecognition::init();
 
     setTimeFromTimeStrings(dateStr, timeStr);
@@ -86,7 +86,7 @@ extern "C" void app_main(void) {
         // run_speech_recognition();
 
         // TODO: implement this properly.
-        display.setBatteryLevel(map(analogRead(PIN_BATTERY_SENSE), 0, 4096, 0, 15));
+        // display.setBatteryLevel(map(analogRead(PIN_BATTERY_SENSE), 0, 4096, 0, 15));
 
         // time_t now;
         // char strftime_buf[64];
