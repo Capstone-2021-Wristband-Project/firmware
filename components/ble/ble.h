@@ -23,6 +23,11 @@ enum
     HRS_IDX_NB,
 };
 
+/* For printing a notification message in app logs. Incomplete. */
 void notifier(char *message);
 
+/* Returns current motor intensity. */
+int getMotorIntensity();
+
+/* Main function to run bluetooth. */
 void ble_main(void);

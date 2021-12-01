@@ -172,10 +172,12 @@ static const uint8_t char_prop_notify              = ESP_GATT_CHAR_PROP_BIT_NOTI
 static const uint8_t char_prop_read_write          = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t char1_name[]  = "Motor Setting";
 static const uint8_t char2_name[]  = "Char_2_Long_WR";
-static const uint8_t char3_name[]  = "Char_3_Short_Notify";
+static const uint8_t char3_name[]  = "Vibration Notifier";
 static const uint8_t char_ccc[2]   = {0x00, 0x00};
 static const uint8_t char_value[4] = {0x11, 0x22, 0x33, 0x44};
 
+/* Intensity of the wristband motor */
+static int motorIntensity = 0;
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
@@ -185,7 +187,8 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
       sizeof(uint16_t), sizeof(GATTS_SERVICE_UUID_TEST), (uint8_t *)&GATTS_SERVICE_UUID_TEST}},
 
-    /* Characteristic Declaration */
+    /* Motor intensity adjustment
+	   Characteristic Declaration */
     [IDX_CHAR_A]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
@@ -213,24 +216,25 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
      Characteristic User Descriptor 
     [IDX_CHAR_CFG_B]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_user_description, ESP_GATT_PERM_READ,
-      sizeof(char2_name), sizeof(char2_name), (uint8_t *)char2_name}},
+      sizeof(char2_name), sizeof(char2_name), (uint8_t *)char2_name}},*/
 
-     Characteristic Declaration 
+	/* Notifications
+       Characteristic Declaration */
     [IDX_CHAR_C]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_notify}},
 
-      Characteristic Value 
+	/* Characteristic Value */
     [IDX_CHAR_VAL_C]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&CHAR_3_SHORT_NOTIFY, 0,
       LONG_CHAR_VAL_LEN, sizeof(char_value), (uint8_t *)char_value}},
 
-      Characteristic User Descriptor 
+    /* Characteristic User Descriptor */
     [IDX_CHAR_CFG_C]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_user_description, ESP_GATT_PERM_READ,
       sizeof(char3_name), sizeof(char3_name), (uint8_t *)char3_name}},
 
-      Characteristic Client Configuration Descriptor */
+    /* Characteristic Client Configuration Descriptor */
     [IDX_CHAR_CFG_C_2]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(char_ccc), (uint8_t *)char_ccc}},
@@ -531,8 +535,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 						}
 					}
 					if (contains) {
+						motorIntensity = data;
 						ESP_LOGI(EXAMPLE_TAG, "Writing %" PRIu8 " to vibration motor.\n", *(param->write.value));
 						//adjustMotor(data);
+						//function pointer, static variable
 					}
 					
                     if(memcmp(write_data, param->write.value, param->write.len) == 0) {
@@ -594,11 +600,16 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
     }
 }
 
-//Prints given message to log.
+/* Prints given message to log. */
 void notifier(char *message) {
 	ESP_LOGI(EXAMPLE_TAG, "%s\n", message);
 	//esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, gatt_db_handle_table[IDX_CHAR_VAL_C],
       //                  sizeof(notify_data), notify_data, false);
+}
+
+/* Returns the current intensity of the vibration motor in the wristband. */
+int getMotorIntensity() {
+	return motorIntensity;
 }
 
 static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
