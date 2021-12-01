@@ -1,4 +1,4 @@
 idf_component_register(
-    SRCS "viberation-motor.cpp"
+    SRCS "vibration-motor.cpp"
     INCLUDE_DIRS "."
     REQUIRES)
