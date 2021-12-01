@@ -13,4 +13,4 @@ idf_component_register(
     INCLUDE_DIRS "." "U8g2/src"
     REQUIRES arduino)
 
-set_target_properties(${COMPONENT_LIB} PROPERTIES COMPILE_FLAGS -Wno-unused-const-variable)
+set_target_properties(${COMPONENT_LIB} PROPERTIES COMPILE_FLAGS "-Wno-unused-const-variable -Wno-maybe-uninitialized")
