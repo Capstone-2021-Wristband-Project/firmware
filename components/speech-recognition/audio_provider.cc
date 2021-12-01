@@ -58,7 +58,7 @@ const int32_t kAudioCaptureBufferSize = 80000;
 const int32_t i2s_bytes_to_read = 3200;
 
 static void i2s_init(void) {
-    // Start listening for audio: MONO @ 16KHz
+    // Start listening for audio: MONO @ 16KHz on the built-in ADC
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN),
         .sample_rate = 16000,
@@ -80,10 +80,6 @@ static void i2s_init(void) {
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error in i2s_driver_install");
     }
-    // ret = i2s_set_pin((i2s_port_t)1, &pin_config);
-    // if (ret != ESP_OK) {
-    //   ESP_LOGE(TAG, "Error in i2s_set_pin");
-    // }
 
     ret = i2s_zero_dma_buffer((i2s_port_t)0);
     if (ret != ESP_OK) {

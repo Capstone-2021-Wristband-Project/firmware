@@ -1,7 +1,8 @@
 // stdlib Includes
+#include <stdio.h>
+
 #include <algorithm>
 #include <array>
-#include <stdio.h>
 #include <string>
 
 // ESP-IDF Includes
@@ -24,9 +25,7 @@
 // display
 #include "display.h"
 #include "time_utils.h"
-
 #include "vibration-motor.h"
-
 
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
 extern const uint8_t bin_end[] asm("_binary_ulp_mic_bin_end");
@@ -77,8 +76,8 @@ extern "C" void app_main(void) {
 
     display.enableDisplay();
 
-    //init_speech_recognition();
-    
+    // init_speech_recognition();
+
     setTimeFromTimeStrings(dateStr, timeStr);
 
     long count = 0;
@@ -87,43 +86,30 @@ extern "C" void app_main(void) {
     motor.enable();
 
     while (true) {
-        //run_speech_recognition();
+        // run_speech_recognition();
 
         // TODO: implement this properly.
-        display.setBatteryLevel(map(analogRead(PIN_BATTERY_SENSE), 0 ,4096, 0, 15));
-        
-        display.updateDisplay();
-        time_t now;
-        char strftime_buf[64];
-        struct tm timeinfo;
+        display.setBatteryLevel(map(analogRead(PIN_BATTERY_SENSE), 0, 4096, 0, 15));
 
-        time(&now);
-        localtime_r(&now, &timeinfo);
-        strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-        ESP_LOGI("time", "The current date/time is: %s", strftime_buf);
+        // time_t now;
+        // char strftime_buf[64];
+        // struct tm timeinfo;
 
-        if(count == 30) {
-            display.addEvent("up");
+        // time(&now);
+        // localtime_r(&now, &timeinfo);
+        // strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+        // ESP_LOGI("time", "The current date/time is: %s", strftime_buf);
+
+        if (count == 30) {
+            display.addEvent(eventName::Yes);
             motor.stop();
         }
 
-        if(count == 40) {
-            display.addEvent("down");
+        if (count == 40) {
+            display.addEvent(eventName::No);
         }
 
-        if(count == 50) {
-            display.addEvent("left");
-        }
-
-        if(count == 60) {
-            display.addEvent("right");
-        }
-
-        if(count == 80) {
-            display.addEvent("stop");
-        }
-
-        count ++;
+        count++;
 
         vTaskDelay(100);
     }
