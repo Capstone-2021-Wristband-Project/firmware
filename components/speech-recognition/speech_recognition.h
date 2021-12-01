@@ -16,12 +16,17 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_MICRO_EXAMPLES_MICRO_SPEECH_MAIN_FUNCTIONS_H_
 #define TENSORFLOW_LITE_MICRO_EXAMPLES_MICRO_SPEECH_MAIN_FUNCTIONS_H_
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+
+#include "display.h"
+
 // Expose a C friendly interface for main functions.
 #ifdef __cplusplus
 extern "C" {
 #endif
 namespace SpeechRecognition {
-void init();
+void init(QueueHandle_t eventQueue, Display& diplay);
 }
 #ifdef __cplusplus
 }

@@ -5,13 +5,10 @@
 #include <string>
 #include <type_traits>
 
-
+#include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
-#include "driver/gpio.h"
-
 #include "u8g2.h"
-
 
 const gpio_num_t DISPLAY_I2C_SCL = GPIO_NUM_27;
 const gpio_num_t DISPLAY_I2C_SDA = GPIO_NUM_32;
@@ -44,8 +41,6 @@ class Display {
     // U8G2_SSD1327_EA_W128128_F_HW_I2C u8g2 = U8G2_SSD1327_EA_W128128_F_HW_I2C(U8G2_R0, /* reset=*/
     // U8X8_PIN_NONE, /* scl=*/DISPLAY_I2C_SCL, /* sda=*/DISPLAY_I2C_SDA);
 
-    
-
     // U8G2_SSD1327_WS_128X128_F_HW_I2C u8g2 = U8G2_SSD1327_WS_128X128_F_HW_I2C(
     //     U8G2_R0, /* reset=*/U8X8_PIN_NONE, /* scl=*/DISPLAY_I2C_SCL, /* sda=*/DISPLAY_I2C_SDA);
     u8g2_t u8g2;
@@ -54,7 +49,6 @@ class Display {
     eventRecord events[eventBufferSize];
     int lastEventIndex = 0;
     int eventCount = 0;
-    QueueHandle_t eventQueue = nullptr;
     TaskHandle_t taskHandle{};
 
     // Not thread-safe! Only call from the display task
@@ -67,4 +61,5 @@ class Display {
     void disableDisplay();
     void addEvent(const eventName name);
     static void taskWrapper(void* display_context);
+    QueueHandle_t eventQueue = nullptr;
 };

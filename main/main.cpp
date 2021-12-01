@@ -17,10 +17,10 @@
 // Project Includes
 #include "display.h"
 #include "pindefs.h"
+#include "speech_recognition.h"
 #include "time_utils.h"
 #include "ulp_mic.h"
 #include "vibration-motor.h"
-#include "speech_recognition.h"
 
 // Arduino because it's easy
 // #include "Arduino.h"
@@ -73,7 +73,7 @@ extern "C" void app_main(void) {
     // }
 
     display.enableDisplay();
-    SpeechRecognition::init();
+    SpeechRecognition::init(display.eventQueue, display);
 
     setTimeFromTimeStrings(dateStr, timeStr);
 
@@ -82,32 +82,10 @@ extern "C" void app_main(void) {
     motor.init();
     motor.enable();
 
+    display.setBatteryLevel(13);
+
     while (true) {
-        // run_speech_recognition();
-
-        // TODO: implement this properly.
-        // display.setBatteryLevel(map(analogRead(PIN_BATTERY_SENSE), 0, 4096, 0, 15));
-
-        // time_t now;
-        // char strftime_buf[64];
-        // struct tm timeinfo;
-
-        // time(&now);
-        // localtime_r(&now, &timeinfo);
-        // strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-        // ESP_LOGI("time", "The current date/time is: %s", strftime_buf);
-
-        if (count == 30) {
-            display.addEvent(eventName::Yes);
-            motor.stop();
-        }
-
-        if (count == 40) {
-            display.addEvent(eventName::No);
-        }
-
-        count++;
-
+        // Display and Speech tasks have all the logic
         vTaskDelay(100);
     }
 }

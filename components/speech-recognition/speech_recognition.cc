@@ -16,8 +16,10 @@ limitations under the License.
 #include "speech_recognition.h"
 
 #include "audio_provider.h"
-#include "command_responder.h"
+#include "display.h"
 #include "feature_provider.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "micro_model_settings.h"
 #include "model.h"
 #include "recognize_commands.h"
@@ -26,9 +28,6 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/system_setup.h"
 #include "tensorflow/lite/schema/schema_generated.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
@@ -48,6 +47,9 @@ uint8_t tensor_arena[kTensorArenaSize];
 int8_t feature_buffer[kFeatureElementCount];
 int8_t* model_input_buffer = nullptr;
 }  // namespace
+
+// Event queue used to show items on the display
+static QueueHandle_t displayEventQueue{};
 
 // The name of this function is important for Arduino compatibility.
 void speech_recognition_init() {
@@ -125,7 +127,7 @@ void speech_recognition_init() {
 }
 
 // The name of this function is important for Arduino compatibility.
-void speech_recognition_run() {
+void speech_recognition_run(Display* display) {
     // Fetch the spectrogram for the current time.
     const int32_t current_time = LatestAudioTimestamp();
     int how_many_new_slices = 0;
@@ -168,7 +170,7 @@ void speech_recognition_run() {
     // Obtain a pointer to the output tensor
     TfLiteTensor* output = interpreter->output(0);
     // Determine whether a command was recognized based on the output of inference
-    const char* found_command = nullptr;
+    int found_command = 0;
     uint8_t score = 0;
     bool is_new_command = false;
     TfLiteStatus process_status = recognizer->ProcessLatestResults(
@@ -177,24 +179,41 @@ void speech_recognition_run() {
         TF_LITE_REPORT_ERROR(error_reporter, "RecognizeCommands::ProcessLatestResults() failed");
         return;
     }
-    // Do something based on the recognized command. The default implementation
-    // just prints to the error console, but you should replace this with your
-    // own function for a real application.
-    RespondToCommand(error_reporter, current_time, found_command, score, is_new_command);
+
+    switch (found_command) {
+        case 1: {
+            // yes
+            puts("yes");
+            display->addEvent(eventName::Yes);
+            break;
+        }
+        case 2: {
+            // no
+            puts("no");
+            display->addEvent(eventName::No);
+            break;
+        }
+        default: {
+            // No command found
+            break;
+        }
+    }
+
+    // Add it to the queue
 }
 
-
-
-void speech_recognition_task(void*) {
+void speech_recognition_task(void* display) {
     while (true) {
-        speech_recognition_run();
+        speech_recognition_run(reinterpret_cast<Display*>(display));
         vTaskDelay(pdMS_TO_TICKS(0));
     }
 }
 
-void SpeechRecognition::init() {
+void SpeechRecognition::init(QueueHandle_t eventQueue, Display& display) {
     static TaskHandle_t taskHandle{};
+    displayEventQueue = eventQueue;
     speech_recognition_init();
 
-    xTaskCreatePinnedToCore(speech_recognition_task, "SpeechRecognition", 32000, nullptr, tskIDLE_PRIORITY + 2, &taskHandle, 0);
+    xTaskCreatePinnedToCore(speech_recognition_task, "SpeechRecognition", 32000, &display,
+                            tskIDLE_PRIORITY + 2, &taskHandle, 0);
 }

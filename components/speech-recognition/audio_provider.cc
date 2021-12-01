@@ -75,7 +75,7 @@ static void i2s_init(void) {
 
     esp_err_t ret = 0;
     ret = i2s_driver_install((i2s_port_t)0, &i2s_config, 0, NULL);
-    i2s_set_adc_mode(ADC_UNIT_1, ADC1_GPIO35_CHANNEL);
+    i2s_set_adc_mode(ADC_UNIT_1, ADC1_GPIO34_CHANNEL);
 
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error in i2s_driver_install");
