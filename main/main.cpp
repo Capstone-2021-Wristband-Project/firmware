@@ -16,7 +16,6 @@
 
 // Project Includes
 #include "pindefs.h"
-#include "speech-recognition.h"
 #include "ulp_mic.h"
 
 // Arduino because it's easy
