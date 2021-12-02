@@ -1,35 +1,51 @@
 // stdlib Includes
 #include <algorithm>
 #include <array>
-#include <stdio.h>
+#include <cstdio>
+#include <string>
 
 // ESP-IDF Includes
 #include "driver/adc.h"
 #include "driver/gpio.h"
 #include "esp32/ulp.h"
 #include "soc/adc_channel.h"
+#include "nvs_flash.h"
 
 // FreeRTOS Includes
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 // Project Includes
+#include "display.h"
 #include "pindefs.h"
-#include "speech-recognition.h"
+#include "speech_recognition.h"
+#include "time_utils.h"
 #include "ulp_mic.h"
+#include "vibration-motor.h"
+
+// Arduino because it's easy
+// #include "Arduino.h"
 
 // BLE
 #ifdef __cplusplus
 extern "C" {
 #endif
-	#include "ble.h"
+#include "ble.h"
 #ifdef __cplusplus
 }
 #endif
+
+
 extern const uint8_t bin_start[] asm("_binary_ulp_mic_bin_start");
 extern const uint8_t bin_end[] asm("_binary_ulp_mic_bin_end");
 
 uint32_t* mic_buffer = &ulp_mic_buffer;
+
+const std::string dateStr = __DATE__;
+const std::string timeStr = __TIME__;
+
+Display display;
+VibrationMotor motor;
 
 void start_ulp_program() {
     // ESP_ERROR_CHECK(
@@ -41,6 +57,9 @@ void start_ulp_program() {
 }
 
 extern "C" void app_main(void) {
+    // initArduino();
+
+
     gpio_config_t gpio_config_data{};
     gpio_config_data.pin_bit_mask = 1ULL << PIN_TESTPOINT_1;
     gpio_config_data.mode = GPIO_MODE_OUTPUT;
@@ -65,15 +84,33 @@ extern "C" void app_main(void) {
     //     fputc('\n', stdout);
     // }
 
-    
+    nvs_flash_init();
 
-    //init_speech_recognition();
-	ble_main();
-	char msg[] = "nothing here";
+    motor.init();
+    display.enableDisplay();
+    SpeechRecognition::init(display.eventQueue, display, motor);
+
+    // vTaskDelay(pdMS_TO_TICKS(5000));
+    puts("before ble");
+    ble_main();
+    puts("after ble");
+
+    setTimeFromTimeStrings(dateStr, timeStr);
+
+    long count = 0;
+
+    // motor.enable();
+
+    gpio_set_direction(PIN_SENSE_ENABLE, GPIO_MODE_OUTPUT);
+    gpio_set_level(PIN_SENSE_ENABLE, 1);
+
+    adc2_config_channel_atten(ADC2_GPIO25_CHANNEL, ADC_ATTEN_DB_11);
+
     while (true) {
-    	notifier(msg);
-    	vTaskDelay(100);
-    //    run_speech_recognition();
-    //    vTaskDelay(1);
+
+
+
+        // Display and Speech tasks have higher priority, we can just spin here
+        vTaskDelay(1);
     }
 }
