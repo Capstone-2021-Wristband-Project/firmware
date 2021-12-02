@@ -526,10 +526,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 }
                 if(gatt_db_handle_table[IDX_CHAR_VAL_A] == param->write.handle/* && param->write.len == 2*/) {
                     uint8_t write_data[2] = {0x88, 0x99};
-                    int write_data2[10] = {1,2,3,4,5,6,7,8,9, 10};
+                    int write_data2[11] = {0,1,2,3,4,5,6,7,8,9, 10};
                     int data = (int)*(param->write.value);
                     int contains = 0;
-                    for (int i = 0; i < 10; i++) {
+                    for (int i = 0; i < 11; i++) {
                     	if (write_data2[i] == data) {
                     		contains = 1;
 						}

@@ -54,7 +54,7 @@ bool g_is_audio_initialized = false;
 int16_t g_history_buffer[history_samples_to_keep];
 }  // namespace
 
-const int32_t kAudioCaptureBufferSize = 80000;
+const int32_t kAudioCaptureBufferSize = 40000;
 const int32_t i2s_bytes_to_read = 3200;
 
 static void i2s_init(void) {

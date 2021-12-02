@@ -3,6 +3,8 @@
 #include "driver/gpio.h"
 #include "driver/ledc.h"
 
+#include "ble.h"
+
 constexpr int vibrationMotorPin = 33;
 constexpr int vibrationMotorPWMChannel = 0;
 constexpr int vibrationDutyCycleMapping[] = {0, 12, 24, 36, 48, 60, 72, 84, 96, 108, 120};
@@ -35,6 +37,8 @@ void VibrationMotor::init() {
 void VibrationMotor::setIntensity(int intensity) { this->intensity = intensity; }
 
 void VibrationMotor::enable() {
+    this->intensity = getMotorIntensity();
+
     ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0,
                                   vibrationDutyCycleMapping[this->intensity]));
     // Update duty to apply the new value

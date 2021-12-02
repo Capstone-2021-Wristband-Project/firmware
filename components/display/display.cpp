@@ -4,6 +4,8 @@
 #include <ctime>
 
 #include "driver/gpio.h"
+#include "driver/adc.h"
+#include "soc/adc_channel.h"
 #include "esp_log.h"
 #include "freertos/task.h"
 #include "u8g2_esp32_hal.h"
@@ -25,10 +27,10 @@ Display::Display() {
     // pinMode(DISPLAY_POWER_SWITCH_PIN, OUTPUT);
     // digitalWrite(DISPLAY_POWER_SWITCH_PIN, DISPLAY_POWER_OFF);
 
-    u8g2_Setup_ssd1327_i2c_ws_128x128_f(&this->u8g2, U8G2_R0, u8g2_esp32_i2c_byte_cb,
+    u8g2_Setup_ssd1327_i2c_ws_128x128_f(&this->u8g2, U8G2_R1, u8g2_esp32_i2c_byte_cb,
                                         u8g2_esp32_gpio_and_delay_cb);
 
-    xTaskCreatePinnedToCore(Display::taskWrapper, "Display", 8000, this, tskIDLE_PRIORITY + 1,
+    xTaskCreatePinnedToCore(Display::taskWrapper, "Display", 4000, this, tskIDLE_PRIORITY + 2,
                             &this->taskHandle, 0);
     this->eventQueue = xQueueCreate(4, sizeof(eventRecord));
 }
@@ -64,6 +66,10 @@ void Display::updateDisplay() {
     u8g2_DrawXBM(&(this->u8g2), 103, 0, batteryIconWidth, batteryIconHeight, batteryIcon);
 
     // draw battery level
+    int battery_level = 0;
+    adc2_get_raw(ADC2_GPIO25_CHANNEL, ADC_WIDTH_BIT_12, &battery_level);
+    this->setBatteryLevel(battery_level >> 8);
+
     u8g2_DrawBox(&(this->u8g2), 106, 3, this->batteryLevel, 10);
 
     // draw clock
@@ -170,8 +176,10 @@ void Display::taskWrapper(void* display_context) {
 
     while (true) {
         if (display_context != nullptr) {
+            auto start = esp_timer_get_time();
             reinterpret_cast<Display*>(display_context)->updateDisplay();
+            printf("Display task: %lldms\n", (esp_timer_get_time() - start) / 1000);
         }
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

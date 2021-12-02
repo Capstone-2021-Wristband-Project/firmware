@@ -53,6 +53,8 @@ static QueueHandle_t displayEventQueue{};
 static Display* display{nullptr};
 static VibrationMotor* motor{nullptr};
 
+static int last_command_time_ms{0};
+
 // The name of this function is important for Arduino compatibility.
 void speech_recognition_init() {
     // Set up logging. Google style is to avoid globals or statics because of
@@ -129,7 +131,11 @@ void speech_recognition_init() {
 }
 
 void speech_recognition_run() {
+    motor->stop();
+
     // Fetch the spectrogram for the current time.
+    // printf("Heap: %d\n", xPortGetFreeHeapSize());
+    // printf("Largest available: %d\n", heap_caps_get_largest_free_block(0));
     const int32_t current_time = LatestAudioTimestamp();
     int how_many_new_slices = 0;
     TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
@@ -181,30 +187,32 @@ void speech_recognition_run() {
         return;
     }
 
-    switch (found_command) {
-        case 1: {
-            // yes
-            puts("yes");
-            display->addEvent(eventName::Yes);
+    if (current_time - last_command_time_ms > 2000) {
+        switch (found_command) {
+            case 1: {
+                // yes
+                puts("yes");
+                display->addEvent(eventName::Yes);
 
-            motor->enable();
-            // vTaskDelay(pdMS_TO_TICKS(200));
-            break;
-        }
-        case 2: {
-            // no
-            puts("no");
-            display->addEvent(eventName::No);
+                motor->enable();
+                last_command_time_ms = current_time;
+                break;
+            }
+            case 2: {
+                // no
+                puts("no");
+                display->addEvent(eventName::No);
 
-            motor->enable();
-            // vTaskDelay(pdMS_TO_TICKS(200));
-            break;
-        }
-        default: {
-            // No command found
-            motor->stop();
+                motor->enable();
+                last_command_time_ms = current_time;
 
-            break;
+                break;
+            }
+            default: {
+                // No command found
+
+                break;
+            }
         }
     }
 
@@ -213,8 +221,11 @@ void speech_recognition_run() {
 
 void speech_recognition_task(void*) {
     while (true) {
+        auto start = esp_timer_get_time();
         speech_recognition_run();
-        vTaskDelay(pdMS_TO_TICKS(0));
+        printf("Speech Recognition task: %lldms\n", (esp_timer_get_time() - start) / 1000);
+
+        vTaskDelay(pdMS_TO_TICKS(200));
     }
 }
 
@@ -227,5 +238,5 @@ void SpeechRecognition::init(QueueHandle_t eventQueue, Display& mainDisplay,
     speech_recognition_init();
 
     xTaskCreatePinnedToCore(speech_recognition_task, "SpeechRecognition", 32000, nullptr,
-                            tskIDLE_PRIORITY + 2, &taskHandle, 0);
+                            tskIDLE_PRIORITY + 1, &taskHandle, 0);
 }

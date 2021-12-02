@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Attributes State Machine */
-enum
-{
+enum {
     IDX_SVC,
     IDX_CHAR_A,
     IDX_CHAR_VAL_A,
@@ -31,3 +33,7 @@ int getMotorIntensity();
 
 /* Main function to run bluetooth. */
 void ble_main(void);
+
+#ifdef __cplusplus
+}
+#endif

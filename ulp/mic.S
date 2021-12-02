@@ -3,7 +3,7 @@
 
 	/* ADC1 channel 6, GPIO34 */
 	.set adc_channel, 6
-	.set sample_count, 8000
+	.set sample_count, 12
 
 	/* Code goes into .text section */
 .text
