@@ -187,7 +187,7 @@ void speech_recognition_run() {
         return;
     }
 
-    if (current_time - last_command_time_ms > 2000) {
+    if (current_time - last_command_time_ms > 1000) {
         switch (found_command) {
             case 1: {
                 // yes
@@ -223,7 +223,7 @@ void speech_recognition_task(void*) {
     while (true) {
         auto start = esp_timer_get_time();
         speech_recognition_run();
-        printf("Speech Recognition task: %lldms\n", (esp_timer_get_time() - start) / 1000);
+        // printf("Speech Recognition task: %lldms\n", (esp_timer_get_time() - start) / 1000);
 
         vTaskDelay(pdMS_TO_TICKS(200));
     }
