@@ -95,6 +95,8 @@ extern "C" void app_main(void) {
     ble_main();
     puts("after ble");
 
+
+
     setTimeFromTimeStrings(dateStr, timeStr);
 
     long count = 0;
